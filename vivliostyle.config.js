@@ -1,21 +1,22 @@
 module.exports = {
-  title: 'solana-escrow-book', // populated into `publication.json`, default to `title` of the first entry or `name` in `package.json`.
-  author: 'k-kinzal <log@logn.in>', // default to `author` in `package.json` or undefined.
-  // language: 'ja', // default to undefined.
-  // size: 'A4', // paper size.
-  theme: '@vivliostyle/theme-techbook@^1.0.1', // .css or local dir or npm package. default to undefined.
+  title: 'Solana Escrow入門',
+  author: 'Kouta Ozaki',
+  size: 'A5', // paper size.
+  theme: '@vivliostyle/theme-techbook@^1.0.1',
   entry: [
-    'articles/manuscript.md', // `title` is automatically guessed from the file (frontmatter > first heading).
-    // {
-    //   path: 'epigraph.md',
-    //   title: 'Epigraph', // title can be overwritten (entry > file),
-    //   theme: '@vivliostyle/theme-whatever', // theme can be set individually. default to the root `theme`.
-    // },
-    // 'glossary.html', // html can be passed.
-  ], // `entry` can be `string` or `object` if there's only single markdown file.
-  // entryContext: './manuscripts', // default to '.' (relative to `vivliostyle.config.js`).
-  output: [ // path to generate draft file(s). default to '{title}.pdf'
-    // './output.pdf', // the output format will be inferred from the name.
+    '00-index.md',
+    '01-introduction.md',
+    '02-what-is-escrow.md',
+    '03-escrow-project-setup.md',
+    '04-escrow-program.md',
+    '05-escrow-client.md',
+    '06-escrow-cli.md',
+    '07-run-escrow.md',
+    '08-conclusion.md',
+    '99-colophon.md',
+  ],
+  entryContext: './articles',
+  output: [
     {
       path: '.dist/webpub',
       format: 'webpub',
@@ -25,9 +26,10 @@ module.exports = {
       format: 'pdf',
     },
   ],
-  // workspaceDir: '.vivliostyle', // directory which is saved intermediate files.
-  // toc: true, // whether generate and include ToC HTML or not, default to 'false'.
-  // cover: './cover.png', // cover image. default to undefined.
+  // toc: {
+  //   title: '目次',
+  // },
+  cover: 'images/cover.jpg',
   // vfm: { // options of VFM processor
   //   hardLineBreaks: true, // converts line breaks of VFM to <br> tags. default to 'false'.
   //   disableFormatHtml: true, // disables HTML formatting. default to 'false'.

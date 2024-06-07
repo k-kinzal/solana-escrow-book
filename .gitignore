@@ -132,6 +132,7 @@ dist
 ## vivliostyle
 themes/
 publication.json
+**/*.html
 
 # dist dir
 .dist/
