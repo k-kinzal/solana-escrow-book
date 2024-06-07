@@ -1,0 +1,15 @@
+{
+  "name": "solana-escrow-book",
+  "description": "solana-escrow-book",
+  "version": "0.0.0",
+  "author": "k-kinzal <log@logn.in>",
+  "scripts": {
+    "build": "vivliostyle build",
+    "preview": "vivliostyle preview"
+  },
+  "dependencies": {
+    "@vivliostyle/cli": "latest"
+  },
+  "license": "MIT",
+  "private": true
+}
