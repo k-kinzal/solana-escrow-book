@@ -1,9 +1,9 @@
 # 7. エスクロープログラムの実行
 
-本章ではここまで作成したエスクロープログラムを実際に実行します。
+本章では、ここまで作成したエスクロープログラムを実際に実行します。
 
-今回は動作のさせやすい検証環境であるDevnetを利用します。
-もし、TestnetやMainnet-Betaを利用する場合は、そちらに合わせて設定を変更してください。
+今回は、動作検証に適した環境であるDevnetを利用します。
+もし、TestnetやMainnet-Betaを利用する場合は、それらに合わせて設定を変更してください。
 
 ## 7.1. Solana CLIの設定
 
@@ -21,30 +21,30 @@ address_labels:
 commitment: confirmed
 ```
 
-上記のように`json_rpc_url`に`https://api.devnet.solana.com`を設定してください。
+上記のように、`json_rpc_url`に`https://api.devnet.solana.com`を設定してください。
 
 ## 7.2. Solanaトークンの入手
 
-この後プログラムを実行していくにあたりSolanaトークンを入手する必要があります。
+この後、プログラムを実行していく上で、Solanaトークンが必要になります。
 
-Devnet、TestnetではAirdropを実行することでSolanaトークンを入手することができます。
+Devnet、Testnetでは、Airdropを実行することでSolanaトークンを入手できます。
 
 ```bash
 $ solana airdrop 1
 ```
 
-もし、Mainnet-BetaでSolanaトークンを利用したい場合は、別途取引所や個人間取引で手に入れてください。
+もし、Mainnet-Betaで、Solanaトークンを利用したい場合は、別途取引所や個人間取引で入手してください。
 
 ## 7.3. エスクロープログラムのデプロイ
 
-Solana CLIの準備ができたのでエスクロープログラムをデプロイします。
+Solana CLIの準備ができたので、エスクロープログラムをデプロイします。
 
 ```bash
 $ cargo build-sbf
 $ solana program deploy --program-id target/deploy/escrow_program-keypair.json target/deploy/escrow_program.so
 ```
 
-ビルドさえできていれば初回のデプロイで失敗することはほぼありませんが、プログラムを変更したさいにエラーが出て再デプロイできなくなることはよくあります。
+ビルドさえできていれば、初回のデプロイで失敗することはほとんどありませんが、プログラムを変更した際にエラーが出て、再デプロイできなくなることはよくあります。
 
 ```bash
 $ solana program deploy --program-id target/deploy/escrow_program-keypair.json target/deploy/escrow_program.so
@@ -63,21 +63,21 @@ Or to recover the account's lamports, pass it as the
 Error: 10 write transactions failed
 ```
 
-これはエラーの原因次第ということはありますが、よくあるケースは`.so`ファイルのサイズが変更前より大きくなったさいによく出ます。
-そういったさいには`extend`サブコマンドを利用してサイズを拡張することで解決できます。
+これは、エラーの原因次第ですが、よくあるケースは`.so`ファイルのサイズが変更前より大きくなった際によく発生します。
+そういった場合には、`extend`サブコマンドを利用してサイズを拡張することで解決できます。
 
 ```bash
 $ solana program extend $(solana address -k target/deploy/escrow_program-keypair.json) 1024
 ```
 
-このコマンドでは`1024`バイトほど元のサイズから拡張しています。
-実際にどのくらい拡張するかは`solana program show [program id]`の`Data Length`で表示されるサイズと、実際の`.so`ファイルのサイズを比較して必要な分を拡張してください。
+このコマンドでは、`1024`バイトほど元のサイズから拡張しています。
+実際にどのくらい拡張するかは、`solana program show [program id]`の`Data Length`で表示されるサイズと、実際の`.so`ファイルのサイズを比較して、必要な分だけ拡張してください。
 
-ここまで出来たらエスクロープログラムが利用可能になるため、実際にエスクローを行うための準備をしていきます。
+ここまでできたら、エスクロープログラムが利用可能になるので、実際にエスクローを行うための準備をしていきます。
 
 ## 7.4. ミントトークンの作成
 
-エスクロープログラムでは2つのミントトークンと関連トークンアカウントが必要になるため作成していきます。
+エスクロープログラムでは、2つのミントトークンと関連トークンアカウントが必要になるため、作成していきます。
 
 **トークンA**
 ```bash
@@ -131,11 +131,11 @@ Minting 100 tokens
 Signature: 2SMxJMRZyV66sBfaUqS8Jx4nKFgNkCHpMHgWBvCPLg96Z5vQkqWDHg1mUKD8pZ8rPFV8TcAgAid2dMwjeaKfMLbn
 ```
 
-ここで作成した`5dXDdzZ6BQNxFszbX5uoYhx7n9K26DucfQ3yjWL453xF`と`GxRiESaLqhGBbersF73m56dCa4oKUQ64joZyWxPPJsS8`のミントトークンのアドレスを利用してエスクロープログラムを呼び出します。
+ここで作成した`5dXDdzZ6BQNxFszbX5uoYhx7n9K26DucfQ3yjWL453xF`と`GxRiESaLqhGBbersF73m56dCa4oKUQ64joZyWxPPJsS8`のミントトークンのアドレスを利用して、エスクロープログラムを呼び出します。
 
 ## 7.5. エスクローアカウントの初期化
 
-それでは実際にエスクローアカウントを作成してみましょう。
+それでは、実際にエスクローアカウントを作成してみましょう。
 
 ```bash
 $ cargo run --bin escrow-cli -- init 5dXDdzZ6BQNxFszbX5uoYhx7n9K26DucfQ3yjWL453xF 1000000000 GxRiESaLqhGBbersF73m56dCa4oKUQ64joZyWxPPJsS8 1000000000
@@ -144,7 +144,7 @@ Create Account: 6ssvVksvy3CWwjBbXLzs6yM6BzLgA3izy573po2rcBju
 Signature: 4gqLmZM3WQLXX6FpnpgY5ZKomo5aUM9zszMda2r12gS1eSfPTbaggUr8nTkNpXvpoUuDEJrcCtGiF64Mk8iFGkT3
 ```
 
-作成したアカウントを確認すると下記のように設定がされていることがわかります。
+作成したアカウントを確認すると、以下のように設定されていることがわかります。
 
 - Seller: BdWx4rjtN23d4GcWzpKfxmnmVzN5jSdmETmgwwfCCf8m
 - Seller Token Account: 75nRJfhNPzF3QTmSi468QxV3bf37ujNB7EkkR9ZW8QB2
@@ -165,9 +165,9 @@ GxRiESaLqhGBbersF73m56dCa4oKUQ64joZyWxPPJsS8
 
 実際に送信した側のトークン数が1減っていることがわかります。
 
-## 7.5. エスクローの実行
+## 7.6. エスクローの実行
 
-次に交換を行い、エスクローの取引を成立させます。
+次に、交換を行い、エスクローの取引を成立させます。
 今回は同一のアカウントを使って取引を行うため、最終的に保持するトークン数はどちらも100になることを期待しています。
 
 ```bash
@@ -187,14 +187,14 @@ GxRiESaLqhGBbersF73m56dCa4oKUQ64joZyWxPPJsS8
 100
 ```
 
-同一アカウントでの交換 = 元の状態になるということでどちらのトークン数も`100`になりました。
+同一アカウントでの交換 = 元の状態になるため、どちらのトークン数も`100`になりました。
 
-交換が行われておらず、実際にはトークンAの送信だけが行われているのでは？と疑いを持つ場合は、コマンド実行結果のシグネチャをSolana Explorerなどで参照してトランザクションを確認することをおすすめします。
-もしくは今回は手間だったので行いませんでしたが、2つアカウントを用意して実際に交換を実現してみてください。
+交換が行われておらず、実際にはトークンAの送信だけが行われているのでは？と疑問に思う場合は、コマンド実行結果のシグネチャをSolana Explorerなどで参照して、トランザクションを確認することをおすすめします。
+もしくは、今回は手間だったので行いませんでしたが、2つのアカウントを用意して実際に交換を実現してみてください。
 
-## 7.6. 章のまとめ
+## 7.7. 章のまとめ
 
 この章では、Devnetを用いて実際にエスクロープログラムの動作を確認しました。
 
-もし、DevnetではなくTestnetやMainnet-Betaを利用する場合はRPCのエンドポイントを切り替える、Solanaトークンの入手方法を変えるぐらいで大枠の実行方法は変わりません。
-Devnetでの動作確認ができたら、TestnetやMainnet-Betaでもプログラムをぜひ公開してみてください。
+もし、DevnetではなくTestnetやMainnet-Betaを利用する場合は、RPCのエンドポイントを切り替える、Solanaトークンの入手方法を変えるぐらいで、大枠の実行方法は変わりません。
+Devnetでの動作確認ができたら、TestnetやMainnet-Betaでもプログラムを公開してみてください。
