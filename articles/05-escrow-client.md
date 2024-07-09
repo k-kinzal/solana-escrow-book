@@ -57,7 +57,7 @@ use borsh::{BorshDeserialize, BorshSchema, BorshSerialize};
 `new_with_borsh`の第3引数には、`Instruction`のコメントで示した期待するアカウントに合わせて設定します。
 Rustでは少しわかりにくいですが、`AccountMeta::new`は`writable` = `true`、`AccountMeta::new_readonly`が`writable` = `false`に対応します。
 
-次に、エスクローの交換を行うインストラクションを生成する関数を作ります。
+次に、エスクローの交換をするインストラクションを生成する関数を作ります。
 
 ```diff
 +pub fn exchange(
@@ -213,7 +213,7 @@ let client = Client::builder(rpc_client, payer)
     .build()
 ```
 
-例えば、トークンプログラムで呼び出すプログラムをTokenProgram2022に変更したい場合に使用します。
+例えば、トークンプログラムとして呼び出すプログラムをトークンプログラム2022に変更するのに使用します。
 逆に、旧トークンプログラムを呼び出したい場合は、`with_token_program_id`を呼び出さないことで、旧トークンプログラムを使用できます。
 
 このように、設定を変更しつつ、クライアントの振る舞いとして初期化時にのみ設定したいという場合に、ビルダーパターンを使うと便利なので、筆者はよく活用しています。
@@ -258,7 +258,7 @@ let client = Client::builder(rpc_client, payer)
 3. 売り手が期待する受け取るミントトークンのアドレス
 4. 売り手が期待する受け取るトークンの量
 
-これらの引数を元に、エスクローの初期化を行います。
+これらの引数を元に、エスクローを初期化します。
 
 この`init`は、 2. エスクローとは で解説した Aトランザクション に相当します。
 どのような指示が必要になるのか思い出してみましょう。
@@ -292,7 +292,7 @@ fn create_account(
 というようなシグネチャになります。
 これを使って、エスクローが保持する一時的な関連トークンアカウントのアカウントを作成します。
 
-Solanaでは、アカウントが必要になる度にこの`CreateAccount`指示を呼び出します。
+Solanaでは、アカウントを作成するさいに`CreateAccount`指示を呼び出します。
 
 ```rust
 let temp_token_account = Keypair::new();
@@ -466,7 +466,7 @@ let signature = self.client.send_transaction(&tx).await?;
 
 トランザクションを作成する際に、指示、手数料の支払い者、署名のためのキーペア、ブロックハッシュを渡します。
 
-署名のためのキーペアで何を渡す必要があるかを判断するには、それぞれの指示の実装を見ていただくのが早いと思います。
+署名のためのキーペアで何を渡す必要があるかを判断するには、それぞれの指示の実装を見ていただくのが早いです。
 
 ```rust
 AccountMeta::new(pubkey, true)
@@ -476,7 +476,7 @@ AccountMeta::new_readonly(pubkey, true)
 指示の作成関数の中で`AccountMeta`を作成しており、この`new`または`new_readonly`の第2引数が`true`になっているものが署名の対象です。
 その公開鍵に対応する秘密鍵、つまりキーペアをトランザクションに渡す必要があります。
 
-ここで作成したトランザクションをRPCの`SendTransaction`で送信することで、それぞれの指示が動作し、エスクローアカウントを作成することができます。
+ここで作成したトランザクションをRPCの`SendTransaction`で送信することで、それぞれの指示が動作し、エスクローアカウントを作成できます。
 
 これまでの実装を合わせると、以下のようなコードになります。
 
@@ -660,9 +660,9 @@ let (pda_account_pubkey, _) =
 ```
 
 これは、エスクロープログラムでPDAを生成したときと同様の`seeds`を渡すようにしてください。
-`get_associated_token_address_with_program_id`のように、エスクロープログラム側に対応する関数を作っても良いかもしれません。
+`get_associated_token_address_with_program_id`のように、エスクロープログラム側に対応する関数を作るのも良い考えです。
 
-ここまでできたら、指示とトランザクションを作成し、送信することができます。
+ここまでできたら、指示とトランザクションを作成し、送信できます。
 
 ```rust
 let blockhash = self.client.get_latest_blockhash().await?;
@@ -769,7 +769,7 @@ pub use crate::client::{Client, ClientBuilder, ClientError, Result};
 
 ## 5.4. 章のまとめ
 
-この章では、エスクロープログラムを呼び出すクライアントの実装を行いました。
+この章では、エスクロープログラムを呼び出すクライアントの実装しました。
 
 クライアントの実装に特に正解というものはありません。
 例えば、SPLのトークンプログラムでは構造が違い、`Token`というミントアカウントを表す構造体にクライアントを持たせるような実装になっていたりします。
