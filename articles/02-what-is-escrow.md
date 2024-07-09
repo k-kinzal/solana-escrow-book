@@ -276,3 +276,5 @@ Solanaブロックチェーンでは、トークンプログラムを利用し�
 
 次章から実際にエスクローをSolanaブロックチェーンで開発する方法の解説を進めていきます。
 Solanaブロックチェーンに慣れた方であれば、ここまでの解説で開発できますので、読み進める前に一度開発をしてみて、答え合わせとして次章以降を読むことをおすすめします。
+
+<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />

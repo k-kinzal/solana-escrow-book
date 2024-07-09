@@ -259,3 +259,5 @@ $ target/release/escrow-cli
 しかし、実際に開発するさいには必要だと感じたときに設定するので構いません。
 
 ここで準備したことをもとに、次章からエスクローの開発を進めていきましょう。
+
+<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />
