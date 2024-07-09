@@ -1,7 +1,7 @@
 module.exports = {
   title: 'Solana Escrow入門',
   author: 'Kouta Ozaki',
-  size: 'A5', // paper size.
+  size: 'A5',
   theme: '@vivliostyle/theme-techbook@^1.0.1',
   entry: [
     '00-index.md',
@@ -25,13 +25,5 @@ module.exports = {
       path: '.dist/solana-escrow-book.pdf',
       format: 'pdf',
     },
-  ],
-  // toc: {
-  //   title: '目次',
-  // },
-  // cover: 'images/cover.jpg',
-  // vfm: { // options of VFM processor
-  //   hardLineBreaks: true, // converts line breaks of VFM to <br> tags. default to 'false'.
-  //   disableFormatHtml: true, // disables HTML formatting. default to 'false'.
-  // },
+  ]
 }

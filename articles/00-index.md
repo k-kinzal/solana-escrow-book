@@ -1,5 +1,3 @@
-<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />
-
 <nav id="toc" role="doc-toc">
 
 # 目次
@@ -48,5 +46,4 @@
 
 </nav>
 
-<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />
 <hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />
