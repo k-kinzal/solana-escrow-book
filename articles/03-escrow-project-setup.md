@@ -152,6 +152,8 @@ thiserror = "1.0.61"
 クライアントでは専用のエラー型を利用するため、エラー定義の定番である`thiserror`クレートを利用します。
 手を抜いて作成するなら`anyhow`を利用して専用のエラー型を作らないということもできます。
 
+<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />
+
 **solana-escrow/cli/Cargo.toml**
 
 ```toml
@@ -184,11 +186,6 @@ CLIでは、CLI作成の定番である`clap`、設定ファイルの読み書�
 **solana-escrow/program/src/lib.rs**
 
 ```rust
-use solana_program::account_info::AccountInfo;
-use solana_program::entrypoint;
-use solana_program::entrypoint::ProgramResult;
-use solana_program::pubkey::Pubkey;
-
 entrypoint!(process_instruction);
 
 fn process_instruction(

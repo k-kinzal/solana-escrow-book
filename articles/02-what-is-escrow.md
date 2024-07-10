@@ -65,22 +65,11 @@ SPLトークンは、SolanaのStandard Program Libraryと呼ばれる、Solana L
 1つ目は、ミントアカウントと呼ばれる、Solanaブロックチェーン上に1つだけ存在するアカウントです。
 
 ```rust
-/// Mint data.
-#[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Mint {
-    /// Optional authority used to mint new tokens. The mint authority may only
-    /// be provided during mint creation. If no mint authority is present
-    /// then the mint has a fixed supply and no further tokens may be
-    /// minted.
     pub mint_authority: COption<Pubkey>,
-    /// Total supply of tokens.
     pub supply: u64,
-    /// Number of base 10 digits to the right of the decimal place.
     pub decimals: u8,
-    /// Is `true` if this structure has been initialized
     pub is_initialized: bool,
-    /// Optional authority to freeze token accounts.
     pub freeze_authority: COption<Pubkey>,
 }
 ```
@@ -90,29 +79,14 @@ Rust上では上記のように定義され、このミントアカウントで�
 2つ目は、関連トークンアカウント（ATA）と呼ばれる、Solanaブロックチェーン上で複数存在するアカウントです。
 
 ```rust
-/// Account data.
-#[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Account {
-    /// The mint associated with this account
     pub mint: Pubkey,
-    /// The owner of this account.
     pub owner: Pubkey,
-    /// The amount of tokens this account holds.
     pub amount: u64,
-    /// If `delegate` is `Some` then `delegated_amount` represents
-    /// the amount authorized by the delegate
     pub delegate: COption<Pubkey>,
-    /// The account's state
     pub state: AccountState,
-    /// If is_native.is_some, this is a native token, and the value logs the
-    /// rent-exempt reserve. An Account is required to be rent-exempt, so
-    /// the value is used by the Processor to ensure that wrapped SOL
-    /// accounts do not drop below this threshold.
     pub is_native: COption<u64>,
-    /// The amount delegated
     pub delegated_amount: u64,
-    /// Optional authority to close the account.
     pub close_authority: COption<Pubkey>,
 }
 ```
@@ -276,5 +250,3 @@ Solanaブロックチェーンでは、トークンプログラムを利用し�
 
 次章から実際にエスクローをSolanaブロックチェーンで開発する方法の解説を進めていきます。
 Solanaブロックチェーンに慣れた方であれば、ここまでの解説で開発できますので、読み進める前に一度開発をしてみて、答え合わせとして次章以降を読むことをおすすめします。
-
-<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />

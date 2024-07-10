@@ -18,11 +18,6 @@ SPLの書き方は手続き型で読みやすく、SPLのコードを読める�
 
 **src/entrypoint.rs**
 ```rust
-use solana_program::account_info::AccountInfo;
-use solana_program::entrypoint;
-use solana_program::entrypoint::ProgramResult;
-use solana_program::pubkey::Pubkey;
-
 entrypoint!(process_instruction);
 
 fn process_instruction(
@@ -38,22 +33,8 @@ fn process_instruction(
 
 **src/lib.rs**
 ```rust
--use solana_program::account_info::AccountInfo;
--use solana_program::entrypoint;
--use solana_program::entrypoint::ProgramResult;
--use solana_program::pubkey::Pubkey;
--
--entrypoint!(process_instruction);
--
--fn process_instruction(
--    program_id: &Pubkey,
--    accounts: &[AccountInfo],
--    instruction_data: &[u8],
--) -> ProgramResult {
--    Ok(())
--}
-+#[cfg(not(feature = "no-entrypoint"))]
-+mod entrypoint;
+#[cfg(not(feature = "no-entrypoint"))]
+mod entrypoint;
 ```
 
 こうすることで、クレートを利用する際にエントリーポイントが不要な場合に、最終的なバイナリサイズを削減できます。
@@ -87,17 +68,14 @@ pub unsafe extern "C" fn entrypoint(input: *mut u8) -> u64 {
 
 ```diff
 +mod instruction;
-
++
 #[cfg(not(feature = "no-entrypoint"))]
 mod entrypoint;
-...
 ```
 
 `src/lib.rs`に追加できたら、次は`src/instruction.rs`にインストラクションを定義しましょう。
 
 ```rust
-use borsh::{BorshDeserialize, BorshSchema, BorshSerialize};
-
 #[derive(BorshSerialize, BorshDeserialize, BorshSchema)]
 pub enum Instruction {
     Initialize(u64),
@@ -140,41 +118,27 @@ impl Instruction {
 ただし、実際のアプリケーションでは、交換の成立前にキャンセルできるインストラクションがあると、より使いやすくなるでしょう。
 
 現状の実装では、それぞれのインストラクションでどのようなアカウントを渡すのかがわかりにくいという問題があります。
+その対策として、SPLの慣例に倣って、このようにコメントでどのようなアカウントを渡すことを期待しているのかを明記します。
 
-```diff
+```rust
 ...
 pub enum Instruction {
-+    /// Initialize escrow agent and enable the transaction.
-+    ///
-+    ///
-+    /// Accounts expected:
-+    ///
-+    ///   0. `[signer]` The account of the person initializing the escrow
-+    ///   1. `[]` The initializer's token account for the token they will receive should the trade go through
-+    ///   2. `[writable]` Temporary token account that should be created prior to this instruction and owned by the initializer
-+    ///   3. `[writable]` The escrow account, it will hold all necessary info about the trade.
-+    ///   4. `[]` The rent sysvar
-+    ///   5. `[]` The token program
+    /// Initialize escrow agent and enable the transaction.
+    ///
+    ///
+    /// Accounts expected:
+    ///
+    ///   0. `[signer]` The account of the person initializing the escrow
+    ///   1. `[]` The initializer's token account for the token they will receive should the trade go through
+    ///   2. `[writable]` Temporary token account that should be created prior to this instruction and owned by the initializer
+    ///   3. `[writable]` The escrow account, it will hold all necessary info about the trade.
+    ///   4. `[]` The rent sysvar
+    ///   5. `[]` The token program
     Initialize(u64),
-+    /// Accepts a trade
-+    ///
-+    ///
-+    /// Accounts expected:
-+    ///
-+    ///   0. `[signer]` The account of the person taking the trade
-+    ///   1. `[writable]` The taker's token account for the token they send
-+    ///   2. `[writable]` The taker's token account for the token they will receive should the trade go through
-+    ///   3. `[writable]` The PDA's temp token account to get tokens from and eventually close
-+    ///   4. `[writable]` The initializer's main account to send their rent fees to
-+    ///   5. `[writable]` The initializer's token account that will receive tokens
-+    ///   6. `[writable]` The escrow account holding the escrow info
-+    ///   7. `[]` The token program
-+    ///   8. `[]` The PDA account
-    Exchange(u64),
+    ...
 }
 ```
 
-そこで、SPLの慣例に倣って、このようにコメントでどのようなアカウントを渡すことを期待しているのかを明記します。
 ただし、コメントで書くと制約を強制できませんし、何より多様な言語からクライアントを生成する際にコメントの解析が必要になってしまいます。
 もしこの辺りをうまく管理したい場合は、SPLの書き方からは外れますが、`metaplex-foundation/shank`を使ったり、フレームワークの`coral-xyz/anchor`を使ってIDL（Interface Definition Language）を生成することを検討してください。
 
@@ -190,16 +154,13 @@ mod instruction;
 
 #[cfg(not(feature = "no-entrypoint"))]
 mod entrypoint;
-...
 ```
 
 `src/lib.rs`に追加できたら、次に`src/state.rs`に状態を定義しましょう。
 
-```rust
-use borsh::{BorshDeserialize, BorshSchema, BorshSerialize};
-use solana_program::program_pack::IsInitialized;
-use solana_program::pubkey::Pubkey;
+<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />
 
+```rust
 #[derive(BorshSerialize, BorshDeserialize, BorshSchema)]
 pub struct Escrow {
     pub is_initialized: bool,
@@ -239,6 +200,8 @@ impl IsInitialized for Escrow {
 `Escrow`構造体も`Instruction`と同様に、Borshフォーマットで扱います。
 より標準的な書き方をしたい場合は、Borshの代わりに`Sealed`と`Pack`トレイトを実装してください。
 
+<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />
+
 ```rust
 impl Sealed for Escrow {}
 
@@ -271,16 +234,11 @@ mod state;
 
 #[cfg(not(feature = "no-entrypoint"))]
 mod entrypoint;
-...
 ```
 
 `src/lib.rs`に追加できたら、次に`src/processor.rs`にプロセッサを定義しましょう。
 
 ```rust
-use solana_program::account_info::AccountInfo;
-use solana_program::entrypoint::ProgramResult;
-use solana_program::pubkey::Pubkey;
-
 struct Processor;
 impl Processor {
     pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], input: &[u8]) -> ProgramResult {
@@ -295,9 +253,6 @@ impl Processor {
 また、`src/entrypoint.rs`で`Processor::process`を呼び出すように変更しましょう。
 
 ```diff
-+use crate::processor::Processor;
-use solana_program::entrypoint;
-
 entrypoint!(process_instruction);
 
 fn process_instruction(
@@ -313,23 +268,13 @@ fn process_instruction(
 それでは、このプロセッサを使ってインストラクションをデシリアライズし、処理を分岐させましょう。
 
 ```diff
-+use crate::instruction::Instruction;
-+use borsh::BorshDeserialize;
-use solana_program::account_info::AccountInfo;
-use solana_program::entrypoint::ProgramResult;
-use solana_program::pubkey::Pubkey;
-
 struct Processor;
 impl Processor {
 +    fn process_init(program_id: &Pubkey, accounts: &[AccountInfo], amount: u64) -> ProgramResult {
 +        todo!()
 +    }
 +
-+    fn process_exchange(
-+        program_id: &Pubkey,
-+        accounts: &[AccountInfo],
-+        amount: u64,
-+    ) -> ProgramResult {
++    fn process_exchange(program_id: &Pubkey, accounts: &[AccountInfo], amount: u64) -> ProgramResult {
 +        todo!()
 +    }
 +
@@ -403,17 +348,7 @@ CU、堅牢性、実装コストのバランスを考えて、適切なバリデ
 まずは、インストラクションのコメントに書かれている通りに、必要なアカウントを取り出します。
 
 ```diff
-use crate::instruction::Instruction;
-use borsh::BorshDeserialize;
--use solana_program::account_info::AccountInfo;
-+use solana_program::account_info::{next_account_info, AccountInfo};
-use solana_program::entrypoint::ProgramResult;
-use solana_program::pubkey::Pubkey;
-+use solana_program::rent::Rent;
-+use solana_program::sysvar::Sysvar;
-
 ...
-
     fn process_init(program_id: &Pubkey, accounts: &[AccountInfo], amount: u64) -> ProgramResult {
 +        let account_iter = &mut accounts.iter();
 +        let seller_account = next_account_info(account_iter)?;
@@ -425,7 +360,6 @@ use solana_program::pubkey::Pubkey;
 +
         todo!()
     }
-
 ...
 ```
 
@@ -435,24 +369,9 @@ use solana_program::pubkey::Pubkey;
 次に、インストラクションとアカウントのバリデーションを追加します。
 
 ```diff
-use crate::instruction::Instruction;
-use borsh::BorshDeserialize;
-use solana_program::account_info::{next_account_info, AccountInfo};
-use solana_program::entrypoint::ProgramResult;
-+use solana_program::program_error::ProgramError;
-use solana_program::pubkey::Pubkey;
-use solana_program::rent::Rent;
-use solana_program::sysvar::Sysvar;
-
 ...
-
     fn process_init(program_id: &Pubkey, accounts: &[AccountInfo], amount: u64) -> ProgramResult {
-        let account_iter = &mut accounts.iter();
-        let seller_account = next_account_info(account_iter)?;
-        let seller_token_account = next_account_info(account_iter)?;
-        let temp_token_account = next_account_info(account_iter)?;
-        let escrow_account = next_account_info(account_iter)?;
-        let rent = Rent::from_account_info(next_account_info(account_iter)?)?;
+        ...
         let token_program = next_account_info(account_iter)?;
         
 +        if seller_token_account.owner != token_program.key {
@@ -464,17 +383,16 @@ use solana_program::sysvar::Sysvar;
 +
         todo!()
     }
-
 ...
 ```
 
 ここでは2つのバリデーションを追加しました。
 
-1つ目は、`seller_token_account.owner != token_program.key`で、トークンプログラムによって作成されたアカウントであることを確認しています。
+`seller_token_account.owner != token_program.key`では、トークンプログラムによって作成されたアカウントであることを確認しています。
 ただし、この検証だけでは、ミントアカウントなのか関連トークンアカウントなのかを判別できません。本来であれば、どちらのアカウントなのかまで検証すべきですが、判別にはデシリアライズが必要であり、デシリアライズはCUを大幅に増加させるため、必要最小限にとどめるべきです。
 ミントアカウントが渡された場合、後続の処理の`process_exchange`で失敗するため、不正な状態にはなりますが、不正な操作はできないと考えられるので、ここではこれ以上のバリデーションは行いません。
 
-2つ目は、`!rent.is_exempt(escrow_account.lamports(), escrow_account.data_len())`で、エスクローアカウントの家賃（rent）が免除されるのに十分な`lamports`が設定されているかを確認しています。
+`!rent.is_exempt(escrow_account.lamports(), escrow_account.data_len())`では、エスクローアカウントの家賃（rent）が免除されるのに十分な`lamports`が設定されているかを確認しています。
 これは、後続の処理の`process_exchange`が実行されるまでにアカウントが削除されないようにするためです。
 
 この他にも、以下のようなバリデーションを考えることができますが、他の部分で検証されるため、今回のコードでは省略しています。
@@ -492,34 +410,9 @@ use solana_program::sysvar::Sysvar;
 次に、エスクローアカウントの状態をデシリアライズし、初期化されていないことを確認してから、初期化します。
 
 ```diff
-use crate::instruction::Instruction;
-+use crate::state::Escrow;
--use borsh::BorshDeserialize;
-+use borsh::{BorshDeserialize, BorshSerialize};
-use solana_program::account_info::{next_account_info, AccountInfo};
-use solana_program::entrypoint::ProgramResult;
-+use solana_program::program_error::ProgramError;
-use solana_program::pubkey::Pubkey;
-use solana_program::rent::Rent;
-use solana_program::sysvar::Sysvar;
-+use solana_program::program_pack::IsInitialized;
-
 ...
-
     fn process_init(program_id: &Pubkey, accounts: &[AccountInfo], amount: u64) -> ProgramResult {
-        let account_iter = &mut accounts.iter();
-        let seller_account = next_account_info(account_iter)?;
-        let seller_token_account = next_account_info(account_iter)?;
-        let temp_token_account = next_account_info(account_iter)?;
-        let escrow_account = next_account_info(account_iter)?;
-        let rent = Rent::from_account_info(next_account_info(account_iter)?)?;
-        let token_program = next_account_info(account_iter)?;
-
-        if seller_token_account.owner != token_program.key {
-            return Err(ProgramError::IncorrectProgramId);
-        }
-        if !rent.is_exempt(escrow_account.lamports(), escrow_account.data_len()) {
-            return Err(ProgramError::AccountNotRentExempt);
+        ...
         }
 
 +        let data = &mut escrow_account.data.borrow_mut();
@@ -536,9 +429,7 @@ use solana_program::sysvar::Sysvar;
 +
         todo!()
     }
-
 ...
-
 ```
 
 アカウントはプログラム上では参照として扱われるため、書き換えるためにミュータブルな（可変な）借用をします。
@@ -547,46 +438,9 @@ use solana_program::sysvar::Sysvar;
 最後に、関連トークンアカウントの所有者をPDAのアドレスに変更します。
 
 ```diff
-use crate::instruction::Instruction;
-use crate::state::Escrow;
-use borsh::{BorshDeserialize, BorshSerialize};
-use solana_program::account_info::{next_account_info, AccountInfo};
-use solana_program::entrypoint::ProgramResult;
-use solana_program::program_error::ProgramError;
-use solana_program::pubkey::Pubkey;
-use solana_program::rent::Rent;
-use solana_program::sysvar::Sysvar;
-use solana_program::program_pack::IsInitialized;
-+use spl_token::instruction::AuthorityType;
-
 ...
-
     fn process_init(program_id: &Pubkey, accounts: &[AccountInfo], amount: u64) -> ProgramResult {
-        let account_iter = &mut accounts.iter();
-        let seller_account = next_account_info(account_iter)?;
-        let seller_token_account = next_account_info(account_iter)?;
-        let temp_token_account = next_account_info(account_iter)?;
-        let escrow_account = next_account_info(account_iter)?;
-        let rent = Rent::from_account_info(next_account_info(account_iter)?)?;
-        let token_program = next_account_info(account_iter)?;
-
-        if seller_token_account.owner != token_program.key {
-            return Err(ProgramError::IncorrectProgramId);
-        }
-        if !rent.is_exempt(escrow_account.lamports(), escrow_account.data_len()) {
-            return Err(ProgramError::AccountNotRentExempt);
-        }
-
-        let data = &mut escrow_account.data.borrow_mut();
-        let mut state = Escrow::try_from_slice(data)?;
-        if state.is_initialized() {
-            return Err(ProgramError::AccountAlreadyInitialized);
-        }
-        state.is_initialized = true;
-        state.seller_pubkey = seller_account.key.clone();
-        state.seller_token_account_pubkey = seller_token_account.key.clone();
-        state.temp_token_account_pubkey = temp_token_account.key.clone();
-        state.amount = amount;
+        ...
         data.copy_from_slice(state.try_to_vec()?.as_slice());
 
 +        let (pda, _) = Pubkey::find_program_address(&[b"escrow"], program_id);
@@ -608,10 +462,9 @@ use solana_program::program_pack::IsInitialized;
 +        )?;
 +
 +        Ok(())
+-        todo!()
     }
-
 ...
-
 ```
 
 `Pubkey::find_program_address`を使ってPDAを生成します。
@@ -635,9 +488,7 @@ use solana_program::program_pack::IsInitialized;
 まずは、`process_init`と同様に、インストラクションのコメントに書かれている通りに、必要なアカウントを取り出します。
 
 ```diff
-
 ...
-
     fn process_exchange(program_id: &Pubkey, accounts: &[AccountInfo], amount: u64) -> ProgramResult {
 +        let account_iter = &mut accounts.iter();
 +        let buyer_account = next_account_info(account_iter)?;
@@ -652,29 +503,15 @@ use solana_program::program_pack::IsInitialized;
 +        
         todo!()
     }
-
 ...
-
 ```
 
 次に、インストラクションとアカウントのバリデーションを追加します。
 
 ```diff
--use solana_program::program_pack::IsInitialized;
-+use solana_program::program_pack::{IsInitialized, Pack};
-
 ...
-
     fn process_exchange(program_id: &Pubkey, accounts: &[AccountInfo], amount: u64) -> ProgramResult {
-        let account_iter = &mut accounts.iter();
-        let buyer_account = next_account_info(account_iter)?;
-        let buyer_send_token_account = next_account_info(account_iter)?;
-        let buyer_receive_token_account = next_account_info(account_iter)?;
-        let temp_token_account = next_account_info(account_iter)?;
-        let seller_account = next_account_info(account_iter)?;
-        let seller_token_account = next_account_info(account_iter)?;
-        let escrow_account = next_account_info(account_iter)?;
-        let token_program = next_account_info(account_iter)?;
+        ...
         let pda_account = next_account_info(account_iter)?;
         
 +        let temp_token_account_state =
@@ -700,9 +537,7 @@ use solana_program::program_pack::IsInitialized;
 +
         todo!()
     }
-
 ...
-
 ```
 
 ここでは、エスクロープログラムが所有する一時的な関連トークンアカウントとエスクローアカウントのバリデーションをします。
@@ -716,40 +551,9 @@ use solana_program::program_pack::IsInitialized;
 では、エスクローの交換処理を1つずつ実装していきましょう。
 
 ```diff
-
 ...
-
     fn process_exchange(program_id: &Pubkey, accounts: &[AccountInfo], amount: u64) -> ProgramResult {
-        let account_iter = &mut accounts.iter();
-        let buyer_account = next_account_info(account_iter)?;
-        let buyer_send_token_account = next_account_info(account_iter)?;
-        let buyer_receive_token_account = next_account_info(account_iter)?;
-        let temp_token_account = next_account_info(account_iter)?;
-        let seller_account = next_account_info(account_iter)?;
-        let seller_token_account = next_account_info(account_iter)?;
-        let escrow_account = next_account_info(account_iter)?;
-        let token_program = next_account_info(account_iter)?;
-        let pda_account = next_account_info(account_iter)?;
-        
-        let temp_token_account_state =
-            spl_token::state::Account::unpack(&temp_token_account.try_borrow_data()?)?;
-        if amount != temp_token_account_state.amount {
-            return Err(ProgramError::InvalidAccountData);
-        }
-        
-        let data = &escrow_account.data.borrow();
-        let state = Escrow::try_from_slice(data)?;
-        if !state.is_initialized() {
-            return Err(ProgramError::InvalidAccountData);
-        }
-        if state.temp_token_account_pubkey != *temp_token_account.key {
-            return Err(ProgramError::InvalidAccountData);
-        }
-        if state.seller_pubkey != *seller_account.key {
-            return Err(ProgramError::InvalidAccountData);
-        }
-        if state.seller_token_account_pubkey != *seller_token_account.key {
-            return Err(ProgramError::InvalidAccountData);
+        ...
         }
 
 +        let ix = spl_token::instruction::transfer(
@@ -772,67 +576,16 @@ use solana_program::program_pack::IsInitialized;
 +
         todo!()
     }
-
 ...
-
 ```
 
 まず、買い手から売り手へのトークン送信します。
 このとき、送信するトークンの量はエスクローアカウントに設定された売り手の期待する量になります。
 
 ```diff
-
 ...
-
     fn process_exchange(program_id: &Pubkey, accounts: &[AccountInfo], amount: u64) -> ProgramResult {
-        let account_iter = &mut accounts.iter();
-        let buyer_account = next_account_info(account_iter)?;
-        let buyer_send_token_account = next_account_info(account_iter)?;
-        let buyer_receive_token_account = next_account_info(account_iter)?;
-        let temp_token_account = next_account_info(account_iter)?;
-        let seller_account = next_account_info(account_iter)?;
-        let seller_token_account = next_account_info(account_iter)?;
-        let escrow_account = next_account_info(account_iter)?;
-        let token_program = next_account_info(account_iter)?;
-        let pda_account = next_account_info(account_iter)?;
-        
-        let temp_token_account_state =
-            spl_token::state::Account::unpack(&temp_token_account.try_borrow_data()?)?;
-        if amount != temp_token_account_state.amount {
-            return Err(ProgramError::InvalidAccountData);
-        }
-        
-        let data = &escrow_account.data.borrow();
-        let state = Escrow::try_from_slice(data)?;
-        if !state.is_initialized() {
-            return Err(ProgramError::InvalidAccountData);
-        }
-        if state.temp_token_account_pubkey != *temp_token_account.key {
-            return Err(ProgramError::InvalidAccountData);
-        }
-        if state.seller_pubkey != *seller_account.key {
-            return Err(ProgramError::InvalidAccountData);
-        }
-        if state.seller_token_account_pubkey != *seller_token_account.key {
-            return Err(ProgramError::InvalidAccountData);
-        }
-
-        let ix = spl_token::instruction::transfer(
-            token_program.key,
-            buyer_send_token_account.key,
-            seller_token_account.key,
-            buyer_account.key,
-            &[&buyer_account.key],
-            state.amount,
-        )?;
-        invoke(
-            &ix,
-            &[
-                buyer_send_token_account.clone(),
-                seller_token_account.clone(),
-                buyer_account.clone(),
-                token_program.clone(),
-            ],
+        ...
         )?;
 
 +        let (pda, nonce) = Pubkey::find_program_address(&[b"escrow"], program_id);
@@ -857,9 +610,7 @@ use solana_program::program_pack::IsInitialized;
 +
         todo!()
     }
-
 ...
-
 ```
 
 次に、エスクロープログラムが所有する一時的な関連トークンアカウントから買い手へトークンを送信します。
@@ -867,78 +618,9 @@ use solana_program::program_pack::IsInitialized;
 エスクロープログラムからの送信では署名が必要になるため、PDAと`invoke_signed`を用いてCPI（Cross-Program Invocation）を実行します。
 
 ```diff
-
 ...
-
     fn process_exchange(program_id: &Pubkey, accounts: &[AccountInfo], amount: u64) -> ProgramResult {
-        let account_iter = &mut accounts.iter();
-        let buyer_account = next_account_info(account_iter)?;
-        let buyer_send_token_account = next_account_info(account_iter)?;
-        let buyer_receive_token_account = next_account_info(account_iter)?;
-        let temp_token_account = next_account_info(account_iter)?;
-        let seller_account = next_account_info(account_iter)?;
-        let seller_token_account = next_account_info(account_iter)?;
-        let escrow_account = next_account_info(account_iter)?;
-        let token_program = next_account_info(account_iter)?;
-        let pda_account = next_account_info(account_iter)?;
-        
-        let temp_token_account_state =
-            spl_token::state::Account::unpack(&temp_token_account.try_borrow_data()?)?;
-        if amount != temp_token_account_state.amount {
-            return Err(ProgramError::InvalidAccountData);
-        }
-        
-        let data = &escrow_account.data.borrow();
-        let state = Escrow::try_from_slice(data)?;
-        if !state.is_initialized() {
-            return Err(ProgramError::InvalidAccountData);
-        }
-        if state.temp_token_account_pubkey != *temp_token_account.key {
-            return Err(ProgramError::InvalidAccountData);
-        }
-        if state.seller_pubkey != *seller_account.key {
-            return Err(ProgramError::InvalidAccountData);
-        }
-        if state.seller_token_account_pubkey != *seller_token_account.key {
-            return Err(ProgramError::InvalidAccountData);
-        }
-
-        let ix = spl_token::instruction::transfer(
-            token_program.key,
-            buyer_send_token_account.key,
-            seller_token_account.key,
-            buyer_account.key,
-            &[&buyer_account.key],
-            state.amount,
-        )?;
-        invoke(
-            &ix,
-            &[
-                buyer_send_token_account.clone(),
-                seller_token_account.clone(),
-                buyer_account.clone(),
-                token_program.clone(),
-            ],
-        )?;
-
-        let (pda, nonce) = Pubkey::find_program_address(&[b"escrow"], program_id);
-        let ix = spl_token::instruction::transfer(
-            token_program.key,
-            temp_token_account.key,
-            buyer_receive_token_account.key,
-            &pda,
-            &[&pda],
-            temp_token_account_state.amount,
-        )?;
-        invoke_signed(
-            &ix,
-            &[
-                temp_token_account.clone(),
-                buyer_receive_token_account.clone(),
-                pda_account.clone(),
-                token_program.clone(),
-            ],
-            &[&[&b"escrow"[..], &[nonce]]],
+        ...
         )?;
 
 +        let ix = spl_token::instruction::close_account(
@@ -959,6 +641,20 @@ use solana_program::program_pack::IsInitialized;
 +            &[&[&b"escrow"[..], &[nonce]]],
 +        )?;
 +
+        todo!()
+    }
+...
+```
+
+次に、エスクローで作成した一時的な関連トークンアカウントを削除します。
+
+エスクロープログラムが所有する一時的な関連トークンアカウントは、トークンプログラムからのみ削除できるため、CPIで`CloseAccount`インストラクションを呼び出します。
+
+```diff
+...
+    fn process_exchange(program_id: &Pubkey, accounts: &[AccountInfo], amount: u64) -> ProgramResult {
+        ...
+        )?;
 +        let mut seller_account_lamports = seller_account.lamports.borrow_mut();
 +        **seller_account_lamports = seller_account_lamports
 +            .checked_add(escrow_account.lamports())
@@ -968,19 +664,18 @@ use solana_program::program_pack::IsInitialized;
 +        let mut escrow_account_data = escrow_account.data.borrow_mut();
 +        *escrow_account_data = &mut [];
 +
-        Ok(())
++        Ok(())
 -        todo!()
     }
-
 ...
-
 ```
 
-最後に、エスクローで作成したアカウントを削除します。
+最後に、エスクローで作成したエスクローアカウントを削除します。
 
-エスクロープログラムが所有する一時的な関連トークンアカウントは、トークンプログラムからのみ削除できるため、CPIで`CloseAccount`インストラクションを呼び出します。
+エスクローアカウントはエスクロープログラム所有するため、そのまま削除できます。
+エスクローアカウントの`lamports`をエスクローアカウントを作成した売り手に返金し、状態を空にすると一定期間後に家賃の支払いができずにアカウントが消えます。
+ただし、アカウントが消えるまでにアクセスがあるとまずいため、念の為にエスクローアカウントのデータ部も空にしておきましょう。
 
-エスクローアカウントはエスクロープログラムで削除できるため、`lamports`をエスクローアカウントを作成した売り手に返金し、状態を空にすることでアカウントを削除します。
 ここはかなり読みづらいコードになっていますが、アカウントの`lamports`と`data`が`Rc<RefCell<T>>`という共有所有権と内部データの可変性を実現するためのラッパーを使用しているためです。
 
 ## 4.5. プログラムIDの設定
@@ -998,16 +693,14 @@ $ solana address -k target/deploy/escrow_program-keypair.json
 ここで表示されたプログラムIDを`src/lib.rs`に追加します。
 
 ```diff
-+use solana_program::declare_id;
-
 mod instruction;
 mod processor;
 mod state;
 
 #[cfg(not(feature = "no-entrypoint"))]
 mod entrypoint;
-
-declare_id!("[your program id]");
++
++declare_id!("[your program id]");
 ```
 
 `[your program id]`の部分には、コマンドで表示されたプログラムIDを設定してください。
@@ -1024,3 +717,5 @@ SPLのプログラムの書き方は、よくも悪くも手続き型です。
 次の章では、実際にこのプログラムを呼び出すためのクライアントをRustで実装します。
 クライアントを作成することで、動作確認やテストがしやすくなるだけでなく、クライアントの視点に立つことでエスクローの理解がより深まるはずです。
 ぜひ、実装に挑戦してみてください。
+
+<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />

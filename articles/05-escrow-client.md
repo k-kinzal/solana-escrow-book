@@ -16,38 +16,29 @@
 
 最初に、エスクローを初期化するインストラクションを生成する関数を作ります。
 
-```diff
-+use crate::id;
-use borsh::{BorshDeserialize, BorshSchema, BorshSerialize};
-+use solana_program::instruction::AccountMeta;
-+use solana_program::pubkey::Pubkey;
-+use solana_program::rent::Rent;
-+use solana_program::sysvar::SysvarId;
-
-...
-
-+pub fn init(
-+    seller_account_pubkey: Pubkey,
-+    seller_token_account_pubkey: Pubkey,
-+    temp_token_account_pubkey: Pubkey,
-+    escrow_account_pubkey: Pubkey,
-+    rent_pubkey: Pubkey,
-+    token_program_pubkey: Pubkey,
-+    amount: u64,
-+) -> solana_program::instruction::Instruction {
-+    solana_program::instruction::Instruction::new_with_borsh(
-+        crate::id(),
-+        &Instruction::Initialize(amount),
-+        vec![
-+            AccountMeta::new(seller_account_pubkey, true),
-+            AccountMeta::new_readonly(seller_token_account_pubkey, false),
-+            AccountMeta::new(temp_token_account_pubkey, false),
-+            AccountMeta::new(escrow_account_pubkey, false),
-+            AccountMeta::new_readonly(rent_pubkey, false),
-+            AccountMeta::new_readonly(token_program_pubkey, false),
-+        ],
-+    )
-+}
+```rust
+pub fn init(
+    seller_account_pubkey: Pubkey,
+    seller_token_account_pubkey: Pubkey,
+    temp_token_account_pubkey: Pubkey,
+    escrow_account_pubkey: Pubkey,
+    rent_pubkey: Pubkey,
+    token_program_pubkey: Pubkey,
+    amount: u64,
+) -> solana_program::instruction::Instruction {
+    solana_program::instruction::Instruction::new_with_borsh(
+        crate::id(),
+        &Instruction::Initialize(amount),
+        vec![
+            AccountMeta::new(seller_account_pubkey, true),
+            AccountMeta::new_readonly(seller_token_account_pubkey, false),
+            AccountMeta::new(temp_token_account_pubkey, false),
+            AccountMeta::new(escrow_account_pubkey, false),
+            AccountMeta::new_readonly(rent_pubkey, false),
+            AccountMeta::new_readonly(token_program_pubkey, false),
+        ],
+    )
+}
 ```
 
 ここでは、SolanaのプログラムやクライアントからESの呼び出しを想定しているため、`solana_program::instruction::Instruction`を返すようにします。
@@ -59,35 +50,35 @@ Rustでは少しわかりにくいですが、`AccountMeta::new`は`writable` = 
 
 次に、エスクローの交換をするインストラクションを生成する関数を作ります。
 
-```diff
-+pub fn exchange(
-+    buyer_account_pubkey: Pubkey,
-+    buyer_send_token_account_pubkey: Pubkey,
-+    buyer_receive_token_account_pubkey: Pubkey,
-+    temp_token_account_pubkey: Pubkey,
-+    seller_account_pubkey: Pubkey,
-+    seller_token_account_pubkey: Pubkey,
-+    escrow_account_pubkey: Pubkey,
-+    token_program_pubkey: Pubkey,
-+    pda_account_pubkey: Pubkey,
-+    amount: u64,
-+) -> solana_program::instruction::Instruction {
-+    solana_program::instruction::Instruction::new_with_borsh(
-+        id(),
-+        &Instruction::Exchange(amount),
-+        vec![
-+            AccountMeta::new(buyer_account_pubkey, true),
-+            AccountMeta::new(buyer_send_token_account_pubkey, false),
-+            AccountMeta::new(buyer_receive_token_account_pubkey, false),
-+            AccountMeta::new(temp_token_account_pubkey, false),
-+            AccountMeta::new(seller_account_pubkey, false),
-+            AccountMeta::new(seller_token_account_pubkey, false),
-+            AccountMeta::new(escrow_account_pubkey, false),
-+            AccountMeta::new_readonly(token_program_pubkey, false),
-+            AccountMeta::new_readonly(pda_account_pubkey, false),
-+        ],
-+    )
-+}
+```rust
+pub fn exchange(
+    buyer_account_pubkey: Pubkey,
+    buyer_send_token_account_pubkey: Pubkey,
+    buyer_receive_token_account_pubkey: Pubkey,
+    temp_token_account_pubkey: Pubkey,
+    seller_account_pubkey: Pubkey,
+    seller_token_account_pubkey: Pubkey,
+    escrow_account_pubkey: Pubkey,
+    token_program_pubkey: Pubkey,
+    pda_account_pubkey: Pubkey,
+    amount: u64,
+) -> solana_program::instruction::Instruction {
+    solana_program::instruction::Instruction::new_with_borsh(
+        id(),
+        &Instruction::Exchange(amount),
+        vec![
+            AccountMeta::new(buyer_account_pubkey, true),
+            AccountMeta::new(buyer_send_token_account_pubkey, false),
+            AccountMeta::new(buyer_receive_token_account_pubkey, false),
+            AccountMeta::new(temp_token_account_pubkey, false),
+            AccountMeta::new(seller_account_pubkey, false),
+            AccountMeta::new(seller_token_account_pubkey, false),
+            AccountMeta::new(escrow_account_pubkey, false),
+            AccountMeta::new_readonly(token_program_pubkey, false),
+            AccountMeta::new_readonly(pda_account_pubkey, false),
+        ],
+    )
+}
 ```
 
 これも`init`関数と同様に、コメントに合わせて設定します。
@@ -96,41 +87,30 @@ Rustでは少しわかりにくいですが、`AccountMeta::new`は`writable` = 
 
 ## 5.2. クライアントの作成
 
-本来はクライアントを別のクレートに分けるべきですが、今回は`escrow-program` クレート内にクライアントを作ることにします。
+それでは、3章で作成したプロジェクトの`solana-escrow/client`ディレクトリを変更していきましょう。
 
 `src/client.rs`を作成し、`src/lib.rs`にモジュールを追加します。
 
-```diff
-use solana_program::entrypoint;
+```rust
+mod client;
 
-+ mod client;
-mod instruction;
-mod processor;
-mod spl_token;
-mod state;
-
-entrypoint!(process_instruction);
-...
+pub client::*;
 ```
 
 `src/lib.rs`に追加できたら、次に`src/client.rs`にクライアントを定義しましょう。
 
-```rust
-use solana_client::nonblocking::rpc_client::RpcClient;
-use solana_program::example_mocks::solana_sdk::signature::{Signature, Signer};
-use solana_program::pubkey::Pubkey;
-use solana_program::system_program;
-use solana_rpc_client_api::client_error::Result as ClientResult;
+<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />
 
+```rust
 #[derive(Debug, thiserror::Error)]
 pub enum ClientError {
     #[error("{0}")]
     RpcError(#[from] solana_rpc_client_api::client_error::Error),
     #[error("{0}")]
-    ProgramError(#[from] solana_sdk::program_error::ProgramError),
-    #[error("error")]
+    ProgramError(#[from] ProgramError),
+    #[error("{0:?}")]
     SerializeSizeError(borsh::schema::SchemaMaxSerializedSizeError),
-    #[error("error")]
+    #[error("{0}")]
     IoError(#[from] std::io::Error),
 }
 
@@ -141,7 +121,13 @@ impl From<borsh::schema::SchemaMaxSerializedSizeError> for ClientError {
 }
 
 pub type Result<T> = std::result::Result<T, ClientError>;
+```
 
+まずは、クライアントで利用するエラーとリザルト型を作成します。
+今回は先に全てのエラーを定義しましたが、実際にはそのエラーが発生することがわかったタイミングで作っていくので十分です。
+
+```rust
+...
 pub struct Client {
     client: Arc<RpcClient>,
     payer: Keypair,
@@ -162,12 +148,17 @@ impl Client {
         todo!()
     }
 }
+```
 
+次に本体になるクライアント型を作成します。
+実際の処理は後ほど書いていくため、今は一旦`todo!()`の形にしておいてください。
+
+```rust
+...
 struct ClientBuilder {
     client: Arc<Client>,
     payer: Keypair,
     escrow_program_id: Option<Pubkey>,
-    system_program_id: Option<Pubkey>,
     token_program_id: Option<Pubkey>,
 }
 
@@ -177,7 +168,6 @@ impl ClientBuilder {
             client,
             payer
             escrow_program_id: None,
-            system_program_id: None,
             token_program_id: None,
         }
     }
@@ -203,7 +193,9 @@ impl ClientBuilder {
 }
 ```
 
-特に強い意図はありませんが、ビルダーパターンを使って、RPCクライアントをラップしたクライアントを作成します。
+最後にクライアントを作成するビルダー型を作成します。
+
+特に強い意図はありませんが、ビルダーパターンを使って、RPCクライアントをラップしたクライアントを作るようにしています。
 これにより、以下のようにプログラムのIDを設定して呼び出すことができるようになります。
 
 ```rust
@@ -213,7 +205,7 @@ let client = Client::builder(rpc_client, payer)
     .build()
 ```
 
-例えば、トークンプログラムとして呼び出すプログラムをトークンプログラム2022に変更するのに使用します。
+これは、例えばトークンプログラムとして呼び出すプログラムをトークンプログラム2022に変更するときに使えます。
 逆に、旧トークンプログラムを呼び出したい場合は、`with_token_program_id`を呼び出さないことで、旧トークンプログラムを使用できます。
 
 このように、設定を変更しつつ、クライアントの振る舞いとして初期化時にのみ設定したいという場合に、ビルダーパターンを使うと便利なので、筆者はよく活用しています。
@@ -234,7 +226,10 @@ let client = Client::builder(rpc_client, payer)
 
 それでは、先ほどのクライアントで`init`関数を実装しましょう。
 
+まず、インターフェースを変更します。
+
 ```diff
+...
 -    pub async fn init(&self) -> ClientResult<Signature> {
 +    pub async fn init(
 +        &self,
@@ -246,9 +241,9 @@ let client = Client::builder(rpc_client, payer)
 -        todo!()
 +    Ok(())
     }
+...
 ```
 
-まず、インターフェースを変更します。
 インターフェースの設計はケースバイケースで一概には言えませんが、エスクローの場合は登場するアカウントが多く、これを全て含めるとわかりにくくなるため、最小限の入力で動作するようにします。
 
 エスクローの初期化では、売り手がどのような取引を望むのかがわかる最小限の引数として、以下の4つを扱います。
@@ -268,8 +263,8 @@ let client = Client::builder(rpc_client, payer)
 > 3. Token Program (Transfer): Aが所有しているアカウントから2で初期化した関連トークンアカウントにトークンを送信
 > 4. System Program (Create Account): 空のアカウントを作成（エスクロー状態アカウント用）
 > 5. Escrow Program (Initialize):
-     >     1. エスクロー状態アカウントを初期化
-     >     2. PDAでプログラムで利用できるアドレスを生成
+>     1. エスクロー状態アカウントを初期化
+>     2. PDAでプログラムで利用できるアドレスを生成
 >     3. Token Program (Set Authority): 2で作成した関連トークンアカウントの所有者をPDAのアドレスに変更
 
 必要なのは、この5つの指示をまとめたトランザクションです。
@@ -279,7 +274,7 @@ let client = Client::builder(rpc_client, payer)
 まず、システムプログラムの`CreateAccount`指示です。
 これは`solana_sdk::system_instruction::create_account`から作成できます。
 
-```
+```rust
 fn create_account(
     from_pubkey: &Pubkey,
     to_pubkey: &Pubkey,
@@ -289,8 +284,8 @@ fn create_account(
 ) -> Instruction
 ```
 
-というようなシグネチャになります。
-これを使って、エスクローが保持する一時的な関連トークンアカウントのアカウントを作成します。
+`create_account`はこのようなシグネチャになります。
+この`create_account`を使って、エスクローが保持する一時的な関連トークンアカウントのアカウントを作成します。
 
 Solanaでは、アカウントを作成するさいに`CreateAccount`指示を呼び出します。
 
@@ -331,7 +326,7 @@ pub fn initialize_account(
 ) -> Result<Instruction, ProgramError>
 ```
 
-というようなシグネチャになります。
+`initialize_account`はこのようなシグネチャになります。
 これを使って、エスクローが保持する一時的な関連トークンアカウントのアカウントを初期化します。
 
 ```rust
@@ -362,7 +357,7 @@ fn transfer(
 ) -> Result<Instruction, ProgramError>
 ```
 
-というようなシグネチャになります。
+`transfer`はこのようなシグネチャになります。
 これを使って、売り手の関連トークンアカウントから、エスクローが保持する一時的な関連トークンアカウントにトークンを転送して預け入れます。
 
 ```rust
@@ -573,6 +568,8 @@ AccountMeta::new_readonly(pubkey, true)
 
 それでは次に、クライアントの`exchange`関数を実装しましょう。
 
+`exchange`も同様にインターフェースを変更します。
+
 ```diff
 -    pub async fn exchange(&self) -> ClientResult<Signature> {
 +    pub async fn exchange(&self, escrow_account_pubkey: Pubkey) -> Result<Signature> {
@@ -663,6 +660,8 @@ let (pda_account_pubkey, _) =
 `get_associated_token_address_with_program_id`のように、エスクロープログラム側に対応する関数を作るのも良い考えです。
 
 ここまでできたら、指示とトランザクションを作成し、送信できます。
+
+<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />
 
 ```rust
 let blockhash = self.client.get_latest_blockhash().await?;
