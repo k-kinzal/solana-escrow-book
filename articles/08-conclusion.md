@@ -23,5 +23,3 @@
 私自身、本書を執筆するにあたり3回目のエスクローの開発でしたが、未だに学びがあります。
 
 本書を読んだみなさまも、ぜひ何度かエスクローの開発にチャレンジしてみてください。
-
-<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />

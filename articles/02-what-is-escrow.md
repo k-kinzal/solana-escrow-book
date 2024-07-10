@@ -64,6 +64,8 @@ SPLトークンは、SolanaのStandard Program Libraryと呼ばれる、Solana L
 
 1つ目は、ミントアカウントと呼ばれる、Solanaブロックチェーン上に1つだけ存在するアカウントです。
 
+<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />
+
 ```rust
 pub struct Mint {
     pub mint_authority: COption<Pubkey>,

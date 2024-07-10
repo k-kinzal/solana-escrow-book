@@ -53,6 +53,8 @@ solana-cli 1.18.17 (src:b685182a; feat:4215500110, client:SolanaLabs)
 まず、任意のディレクトリに以下のようなディレクトリ構成とファイルを作成します。
 ファイルの中身は、順次書いていくため、一旦は空で構いません。
 
+<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />
+
 ```
 solana-escrow
 ├── Cargo.toml

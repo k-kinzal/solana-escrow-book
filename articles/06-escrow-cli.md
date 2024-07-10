@@ -58,8 +58,6 @@ Options:
 `clap`にはいくつかの使い方がありますが、今回はderive方式を採用します。
 この方式では、CLIでどのようなコマンド、引数、オプションを定義するかを構造体で表現し、`parse()`メソッドを呼び出すことでCLIアプリケーションとして動作させることができます。
 
-<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />
-
 ```rust
 #[derive(Parser)]
 struct Cli {
@@ -103,8 +101,6 @@ enum Commands {
 
 次に、サブコマンドとその引数、オプションを設定しましょう。
 このサブコマンドは`Cli`型を経由して、実行したサブコマンドを取得することができます。
-
-<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />
 
 ```diff
 -fn main() {}
@@ -240,8 +236,6 @@ async fn main() -> anyhow::Result<()> {
 これで、エスクロープログラムを実行するCLIアプリケーションの作成ができました。
 
 最後に、ここまで書いたコードをまとめると以下のようになります。
-
-<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />
 
 ```rust
 #[derive(Parser)]

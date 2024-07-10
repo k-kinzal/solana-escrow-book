@@ -2,7 +2,10 @@ module.exports = {
   title: 'Solana Escrow入門',
   author: 'Kouta Ozaki',
   size: 'A5',
-  theme: '@vivliostyle/theme-techbook@^1.0.1',
+  theme: [
+    '@vivliostyle/theme-techbook@^1.0.1',
+    'themes/theme.css'
+  ],
   entry: [
     '00-index.md',
     '01-introduction.md',

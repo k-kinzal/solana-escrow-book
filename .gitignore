@@ -130,7 +130,9 @@ dist
 .pnp.*
 
 ## vivliostyle
-themes/
+themes/packages/
+themes/package.json
+themes/package-lock.json
 publication.json
 **/*.html
 

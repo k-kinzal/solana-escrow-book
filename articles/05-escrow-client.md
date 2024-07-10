@@ -99,8 +99,6 @@ pub client::*;
 
 `src/lib.rs`に追加できたら、次に`src/client.rs`にクライアントを定義しましょう。
 
-<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />
-
 ```rust
 #[derive(Debug, thiserror::Error)]
 pub enum ClientError {
@@ -316,6 +314,8 @@ system_instruction::create_account(
 
 次に、1で作成したアカウントを関連トークンアカウントとして初期化するために、トークンプログラムの`InitializeAccount`指示を作成します。
 これは`spl_token::instruction::initialize_account`から作成できます。
+
+<hr style="break-before: page; visibility: hidden; margin: 0px; padding: 0px; height: 1px;" />
 
 ```rust
 pub fn initialize_account(
