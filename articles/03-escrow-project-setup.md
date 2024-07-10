@@ -3,12 +3,12 @@
 本章では、エスクローを開発するためのプロジェクトのセットアップします。
 
 前提として、Rustの開発環境がセットアップ済みであるものとして進めていきます。
-もし、まだセットアップが完了していない場合は、Rust公式のインストールガイド (https://www.rust-lang.org/tools/install) を参照して、セットアップを行ってください。
+もし、まだセットアップが完了していない場合は、[Rust公式のインストールガイド](https://www.rust-lang.org/tools/install)を参照して、セットアップを行ってください。
 
 また、エスクローの開発例としてコードを公開しています。
 もし、上手くいかないときは、こちらを参考にしてみてください。
 
-- https://github.com/k-kinzal/solana-escrow
+- [github.com/k-kinzal/solana-escrow](https://github.com/k-kinzal/solana-escrow)
 
 ただし、上記のリポジトリは随時更新される可能性があるため、本書の内容と異なる場合があります。
 その際には、コミットログやプルリクエストなどを見て、変更理由を確認してください。
@@ -18,7 +18,7 @@
 Solana CLIは、プロジェクトのデプロイで必要になります。
 本書では`1.18.17`を利用してエスクローの開発を進めるため、同バージョンのSolana CLIをインストールしましょう。
 
-もし、他のバージョンを利用する場合は、公式ドキュメントのインストールガイド (https://docs.solanalabs.com/cli/install) を参照してください。
+もし、他のバージョンを利用する場合は、[公式ドキュメントのインストールガイド](https://docs.solanalabs.com/cli/install) を参照してください。
 
 **MacOS/Linux**
 ```bash
