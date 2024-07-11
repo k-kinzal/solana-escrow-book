@@ -1,5 +1,5 @@
 module.exports = {
-  title: 'Solana Escrow入門',
+  title: 'エスクロー入門',
   author: 'Kouta Ozaki',
   size: 'A5',
   theme: [
