@@ -16,6 +16,7 @@ module.exports = {
     '06-escrow-cli.md',
     '07-run-escrow.md',
     '08-conclusion.md',
+    '09-superteam.md',
     '99-colophon.md',
   ],
   entryContext: './articles',

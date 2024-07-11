@@ -43,6 +43,7 @@
   - [7.6. エスクローの実行](07-run-escrow.html#76-エスクローの実行)
   - [7.7. 章のまとめ](07-run-escrow.html#77-章のまとめ)
 - [8. おわりに](08-conclusion.html)
+- [付録. Superteam](09-superteam.md)
 
 </nav>
 
