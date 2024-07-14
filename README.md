@@ -1,14 +1,16 @@
-# Solana Escrow Book
+# Solana Builders Handbook - エスクロー入門
 
-description
+**Code Example**
+- [solana-escrow](https://github.com/k-kinzal/solana-escrow)
 
-> created by [create-book](https://github.com/vivliostyle/create-book).
+## Getting Started
 
-## References
+```bash
+$ npm install
+$ npm run build
+$ open .dist/solana-escrow-book.pdf
+```
 
-- VFM <https://vivliostyle.github.io/vfm/#/vfm>
-- Vivliostyle CLI <https://github.com/vivliostyle/vivliostyle-cli#readme>
-- Vivliostyle Themes <https://github.com/vivliostyle/themes#readme>
-- Awesome Vivliostyle <https://github.com/vivliostyle/awesome-vivliostyle#readme>
-- Vivliostyle (GitHub) <https://github.com/vivliostyle>
-- Vivliostyle <https://vivliostyle.org>
+PDF、WebPubの両方がビルドされるので好きな方をお使いください。
+
+カバー画像は追加されないため、別途`articles/images/cover.png`または`articles/images/cover_dojin.png`を結合してください。
