@@ -10,7 +10,7 @@
 </section>
 
 <section id="colophon">
-      <h4 class="title">Solana Builders Book - エスクロー入門</h4>
+      <h4 class="title">Solana Builders Handbook - エスクロー入門</h4>
       <ul class="editions">
         <li>
           <time datetime="2024-07-10">2024年07月10日</time>初版発行
